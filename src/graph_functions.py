@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 # Setting up the parent-child relationships between releases
 def set_release_relationships(releases):
@@ -32,33 +33,72 @@ def calculate_y_position(release):
 def create_release_graph(releases):
     start_date = min(release.release_date for release in releases)
 
+    release_lookup = {
+    release.release_id: release
+    for release in releases
+    }
+
+    stream_colours = {
+        "Main": "tab:blue",
+        "Development": "tab:orange",
+        "Integration": "tab:green"
+    }
+
+    status_markers = {
+        "Released": "o",
+        "Testing": "s",
+        "Planned": "^"
+    }
+
     for release in releases:
-        x_position = calculate_x_position(release, start_date)
+        x_position = release.release_date
         y_position = calculate_y_position(release)
 
-        plt.scatter(x_position, y_position)
+        plt.scatter(
+            x_position,
+            y_position,
+            s=60,
+            color=stream_colours.get(release.stream, "grey"),
+            marker=status_markers.get(release.status, "o"),
+            zorder=3
+        )
+
         plt.text(
             x_position,
-            y_position + 0.1,
+            y_position + 0.08,
             release.name,
             ha="center"
         
         )
 
+# Draws lines between parent and child releases, grabs parent directly by id
         if release.parent_id:
-            for possible_parent in releases:
-                if possible_parent.release_id == release.parent_id:
-                    parent_x = calculate_x_position(possible_parent, start_date)
-                    parent_y = calculate_y_position(possible_parent)
+            parent = release_lookup.get(release.parent_id)
 
-                    plt.plot(
-                        [parent_x, x_position],
-                        [parent_y, y_position]
-                    )
+            if parent:
+                parent_x = parent.release_date
+                parent_y = calculate_y_position(parent)
 
-                    break
+                plt.plot(
+                    [parent_x, x_position],
+                    [parent_y, y_position],
+                    color=stream_colours.get(release.stream, "grey"),
+                    linewidth=1.5,
+                    zorder=1
+                )
 
-    plt.xlabel("Days from first release")
-    plt.ylabel("Release stream")
+    plt.yticks(
+    [1, 2, 3],
+    ["Integration", "Development", "Main"])
+
+    plt.ylim(0.8, 3.4)
+
+
+# Gets current axis and sets the x-axis to display months and years
+    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+
+    plt.xlabel("Release Date")
+    plt.ylabel("Release Stream")
     plt.title("Software Release Overview")
     plt.show()
