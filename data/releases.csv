@@ -1,0 +1,7 @@
+release_id,name,release_date,stream,parent_id,status
+R001,Main Release 1.0,2025-01-10,Main,,Released
+R002,Main Release 1.1,2025-02-14,Main,R001,Released
+R003,Main Release 1.2,2025-03-21,Main,R002,Released
+R004,Development Release 1.0,2025-02-05,Development,R001,Released
+R005,Development Release 1.1,2025-04-11,Development,R004,Testing
+R006,Integration Release 1.0,2025-05-02,Integration,R003,Planned
