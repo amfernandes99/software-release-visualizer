@@ -16,7 +16,12 @@ def load_releases(file_path):
                 datetime.strptime(row["release_date"], "%Y-%m-%d").date(),
                 row["stream"],
                 row["parent_id"] if row["parent_id"] else None,
-                row["status"]
+                row["status"],
+                int(row["defects"]),
+                int(row["changes"]),
+                int(row["tests"]),
+                row["integration_status"],
+                row["component_version"]
             )
 
             releases.append(release)
