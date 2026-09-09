@@ -7,23 +7,24 @@ releases = load_releases("data/releases.csv")
 set_release_relationships(releases)
 start_date = min(release.release_date for release in releases)
 
-for release in releases:
-    x_position = calculate_x_position(release, start_date)
-    y_position = calculate_y_position(release)
+## Development check to verify release positioning and relationships.
+# for release in releases:
+#     x_position = calculate_x_position(release, start_date)
+#     y_position = calculate_y_position(release)
 
-    print(
-        release.name,
-        "-",
-        release.defects,
-        "defects,",
-        release.changes,
-        "changes,",
-        release.tests,
-        "tests"
-    )
+#     print(
+#         release.name,
+#         "-",
+#         release.defects,
+#         "defects,",
+#         release.changes,
+#         "changes,",
+#         release.tests,
+#         "tests"
+#     )
 
-    for child in release.children:
-        print("   ->", child.name)
+#     for child in release.children:
+#         print("   ->", child.name)
 
 overview_figure = create_software_release_overview(releases)
 quality_figure = create_defects_changes_testing_graph(releases)
@@ -36,3 +37,4 @@ with PdfPages("software_release_report.pdf") as pdf:
     pdf.savefig(integration_figure)
     pdf.savefig(components_figure)
 
+print("Report generated: software_release_report.pdf")

@@ -10,10 +10,18 @@ def set_release_relationships(releases):
 
     for release in releases:
         if release.parent_id:
+            parent_found = False
+            
             for possible_parent in releases:
                 if possible_parent.release_id == release.parent_id:
                     possible_parent.children.append(release)
+                    parent_found = True
                     break
+
+            if not parent_found:
+                raise ValueError(
+                    f"Parent release {release.parent_id} not found for {release.release_id}"
+                )
 
 # Creating x/y positions for the releases based on their release date and stream
 # Calculate the x position based on the release date
