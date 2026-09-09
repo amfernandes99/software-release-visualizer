@@ -1,4 +1,4 @@
-# Software Release Visualizer
+# Software Release Visualiser
 
 A Python application for visualising software release timelines, relationships and release metadata.
 
