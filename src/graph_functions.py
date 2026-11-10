@@ -2,6 +2,26 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.lines import Line2D
 
+# Shared chart settings, used by every page of the report.
+# Each stream gets its own horizontal lane; a higher number is higher up the chart.
+STREAM_POSITIONS = {
+    "Main": 3,
+    "Development": 2,
+    "Integration": 1,
+}
+
+STREAM_COLOURS = {
+    "Main": "tab:blue",
+    "Development": "tab:orange",
+    "Integration": "tab:green",
+}
+
+STATUS_MARKERS = {
+    "Released": "o",
+    "Testing": "s",
+    "Planned": "^",
+}
+
 # Setting up the parent-child relationships between releases
 def set_release_relationships(releases):
     for release in releases:
@@ -24,123 +44,85 @@ def set_release_relationships(releases):
 
 # Calculate the y position based on the release stream
 def calculate_y_position(release):
-    stream_positions = {
-        "Main": 3,
-        "Development": 2,
-        "Integration": 1
-    }
+    return STREAM_POSITIONS.get(release.stream, 0)
 
-    return stream_positions.get(release.stream, 0)
+# Creates an empty timeline page. One lane per stream, with months along the x-axis.
+# Every page of the report starts from this.
+def create_timeline_axes(title):
+    fig, ax = plt.subplots(figsize=(16, 8))
 
-# Visualising the release graph using matplotlib library
+    ax.set_yticks([3, 2, 1], ["Main", "Development", "Integration"])
+    ax.set_ylim(0.8, 3.5)
+
+    ax.xaxis.set_major_locator(mdates.MonthLocator())
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+
+    ax.set_xlabel("Release Date")
+    ax.set_ylabel("Release Stream")
+    ax.set_title(title)
+
+    return fig, ax
+
 def create_software_release_overview(releases):
+    fig, ax = create_timeline_axes("Software Release Overview")
 
-    plt.figure(figsize=(16, 8))
-
-    release_lookup = {
-    release.release_id: release
-    for release in releases
-    }
-
-    stream_colours = {
-        "Main": "tab:blue",
-        "Development": "tab:orange",
-        "Integration": "tab:green"
-    }
-
-    status_markers = {
-        "Released": "o",
-        "Testing": "s",
-        "Planned": "^"
-    }
+    release_lookup = {release.release_id: release for release in releases}
 
     for release in releases:
         x_position = release.release_date
         y_position = calculate_y_position(release)
 
-        plt.scatter(
+        ax.scatter(
             x_position,
             y_position,
             s=60,
-            color=stream_colours.get(release.stream, "grey"),
-            marker=status_markers.get(release.status, "o"),
+            color=STREAM_COLOURS.get(release.stream, "grey"),
+            marker=STATUS_MARKERS.get(release.status, "o"),
             zorder=3
         )
 
-        plt.text(
+        ax.text(
             x_position,
             y_position + 0.08,
             release.name,
             ha="left",
             rotation=35,
-            fontsize=8            
-        
+            fontsize=8
         )
 
-# Draws lines between parent and child releases, grabs parent directly by id
+        # Draws a line from the parent release to this release
         if release.parent_id:
             parent = release_lookup.get(release.parent_id)
 
             if parent:
-                parent_x = parent.release_date
-                parent_y = calculate_y_position(parent)
-
-                plt.plot(
-                    [parent_x, x_position],
-                    [parent_y, y_position],
-                    color=stream_colours.get(release.stream, "grey"),
+                ax.plot(
+                    [parent.release_date, x_position],
+                    [calculate_y_position(parent), y_position],
+                    color=STREAM_COLOURS.get(release.stream, "grey"),
                     linewidth=1.5,
                     zorder=1
                 )
 
-    plt.yticks(
-    [1, 2, 3],
-    ["Integration", "Development", "Main"])
-
-    plt.ylim(0.8, 3.4)
-
-
-# Gets current axis and sets the x-axis to display months and years
-    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
-
-    plt.xlabel("Release Date")
-    plt.ylabel("Release Stream")
-    plt.title("Software Release Overview")
-
-# Legend for the release status
+    # Legend for the release status, built from the same markers used on the chart
     legend_items = [
-        Line2D([0], [0], marker="o", color="w", markerfacecolor="grey",
-            markersize=8, label="Released"),
-        Line2D([0], [0], marker="s", color="w", markerfacecolor="grey",
-            markersize=8, label="Testing"),
-        Line2D([0], [0], marker="^", color="w", markerfacecolor="grey",
-            markersize=8, label="Planned")
+        Line2D([0], [0], marker=marker, color="w", markerfacecolor="grey",
+               markersize=8, label=status)
+        for status, marker in STATUS_MARKERS.items()
     ]
+    ax.legend(handles=legend_items, loc="upper right")
 
-    plt.legend(handles=legend_items, loc="upper right")
-
-
-
-
-    plt.tight_layout()
-    return plt.gcf()
+    fig.tight_layout()
+    return fig
 
 
 def create_defects_changes_testing_graph(releases):
-    plt.figure(figsize=(16, 8))
+    fig, ax = create_timeline_axes("Defects, Changes and Testing")
 
     for release in releases:
         x_position = release.release_date
         y_position = calculate_y_position(release)
 
-        plt.scatter(
-            x_position,
-            y_position,
-            s=60,
-            color="grey",
-            zorder=3
-        )
+        ax.scatter(x_position, y_position, s=60, color="grey", zorder=3)
 
         release_info = (
             f"{release.name}\n"
@@ -149,7 +131,7 @@ def create_defects_changes_testing_graph(releases):
             f"T:{release.tests}"
         )
 
-        plt.text(
+        ax.text(
             x_position,
             y_position + 0.08,
             release_info,
@@ -158,22 +140,7 @@ def create_defects_changes_testing_graph(releases):
             fontsize=7
         )
 
-    plt.yticks(
-        [1, 2, 3],
-        ["Integration", "Development", "Main"]
-    )
-
-    plt.ylim(0.8, 3.5)
-
-    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
-    plt.gca().xaxis.set_major_formatter(
-        mdates.DateFormatter("%b %Y")
-    )
-
-    plt.xlabel("Release Date")
-    plt.ylabel("Release Stream")
-    plt.title("Defects, Changes and Testing")
-    plt.figtext(
+    fig.text(
         0.5,
         0.02,
         "D = Defects    C = Changes    T = Tests",
@@ -181,30 +148,24 @@ def create_defects_changes_testing_graph(releases):
         fontsize=8
     )
 
-    plt.tight_layout(rect=[0, 0.04, 1, 1])
-    return plt.gcf()
+    fig.tight_layout(rect=[0, 0.04, 1, 1])
+    return fig
 
 def create_integration_software_graph(releases):
-    plt.figure(figsize=(16, 8))
+    fig, ax = create_timeline_axes("Integration Software")
 
     for release in releases:
         x_position = release.release_date
         y_position = calculate_y_position(release)
 
-        plt.scatter(
-            x_position,
-            y_position,
-            s=60,
-            color="grey",
-            zorder=3
-        )
+        ax.scatter(x_position, y_position, s=60, color="grey", zorder=3)
 
         integration_info = (
             f"{release.name}\n"
             f"{release.integration_status}"
         )
 
-        plt.text(
+        ax.text(
             x_position,
             y_position + 0.08,
             integration_info,
@@ -213,46 +174,24 @@ def create_integration_software_graph(releases):
             fontsize=7
         )
 
-    plt.yticks(
-        [1, 2, 3],
-        ["Integration", "Development", "Main"]
-    )
-
-    plt.ylim(0.8, 3.5)
-
-    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
-    plt.gca().xaxis.set_major_formatter(
-        mdates.DateFormatter("%b %Y")
-    )
-
-    plt.xlabel("Release Date")
-    plt.ylabel("Release Stream")
-    plt.title("Integration Software")
-
-    plt.tight_layout()
-    return plt.gcf()
+    fig.tight_layout()
+    return fig
 
 def create_core_components_graph(releases):
-    plt.figure(figsize=(16, 8))
+    fig, ax = create_timeline_axes("Core Components")
 
     for release in releases:
         x_position = release.release_date
         y_position = calculate_y_position(release)
 
-        plt.scatter(
-            x_position,
-            y_position,
-            s=60,
-            color="grey",
-            zorder=3
-        )
+        ax.scatter(x_position, y_position, s=60, color="grey", zorder=3)
 
         component_info = (
             f"{release.name}\n"
             f"{release.component_version}"
         )
 
-        plt.text(
+        ax.text(
             x_position,
             y_position + 0.08,
             component_info,
@@ -261,21 +200,5 @@ def create_core_components_graph(releases):
             fontsize=7
         )
 
-    plt.yticks(
-        [1, 2, 3],
-        ["Integration", "Development", "Main"]
-    )
-
-    plt.ylim(0.8, 3.5)
-
-    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
-    plt.gca().xaxis.set_major_formatter(
-        mdates.DateFormatter("%b %Y")
-    )
-
-    plt.xlabel("Release Date")
-    plt.ylabel("Release Stream")
-    plt.title("Core Components")
-
-    plt.tight_layout()
-    return plt.gcf()
+    fig.tight_layout()
+    return fig
