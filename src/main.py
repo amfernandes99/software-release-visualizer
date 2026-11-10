@@ -1,40 +1,61 @@
-from release_data import load_releases
-from graph_functions import set_release_relationships, calculate_x_position, calculate_y_position, create_software_release_overview, create_defects_changes_testing_graph, create_integration_software_graph, create_core_components_graph
+import argparse
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-releases = load_releases("data/releases.csv")
+from release_data import load_releases
+from graph_functions import (
+    set_release_relationships,
+    create_software_release_overview,
+    create_defects_changes_testing_graph,
+    create_integration_software_graph,
+    create_core_components_graph,
+)
 
-set_release_relationships(releases)
-start_date = min(release.release_date for release in releases)
+# Build paths from this file's location so the script runs from any folder
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-## Development check to verify release positioning and relationships.
-# for release in releases:
-#     x_position = calculate_x_position(release, start_date)
-#     y_position = calculate_y_position(release)
 
-#     print(
-#         release.name,
-#         "-",
-#         release.defects,
-#         "defects,",
-#         release.changes,
-#         "changes,",
-#         release.tests,
-#         "tests"
-#     )
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="Generate a PDF report showing software releases across development streams."
+    )
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        default=PROJECT_ROOT / "data",
+        help="Folder containing the release CSV files (default: data/)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=PROJECT_ROOT / "software_release_report.pdf",
+        help="Where to save the PDF report (default: software_release_report.pdf)",
+    )
+    return parser.parse_args()
 
-#     for child in release.children:
-#         print("   ->", child.name)
 
-overview_figure = create_software_release_overview(releases)
-quality_figure = create_defects_changes_testing_graph(releases)
-integration_figure = create_integration_software_graph(releases)
-components_figure = create_core_components_graph(releases)
+def main():
+    args = parse_arguments()
 
-with PdfPages("software_release_report.pdf") as pdf:
-    pdf.savefig(overview_figure)   
-    pdf.savefig(quality_figure)
-    pdf.savefig(integration_figure)
-    pdf.savefig(components_figure)
+    releases = load_releases(args.data_dir / "releases.csv")
+    set_release_relationships(releases)
 
-print("Report generated: software_release_report.pdf")
+    figures = [
+        create_software_release_overview(releases),
+        create_defects_changes_testing_graph(releases),
+        create_integration_software_graph(releases),
+        create_core_components_graph(releases),
+    ]
+
+    with PdfPages(args.output) as pdf:
+        for figure in figures:
+            pdf.savefig(figure)
+            plt.close(figure)
+
+    print(f"Report generated: {args.output}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.lines import Line2D
-from matplotlib.backends.backend_pdf import PdfPages
 
 # Setting up the parent-child relationships between releases
 def set_release_relationships(releases):
@@ -23,13 +22,7 @@ def set_release_relationships(releases):
                     f"Parent release {release.parent_id} not found for {release.release_id}"
                 )
 
-# Creating x/y positions for the releases based on their release date and stream
-# Calculate the x position based on the release date
-def calculate_x_position(release, start_date):
-    days_from_start = (release.release_date - start_date).days
-    return days_from_start
-
-# Calculate the y position based on the releases
+# Calculate the y position based on the release stream
 def calculate_y_position(release):
     stream_positions = {
         "Main": 3,
@@ -43,8 +36,6 @@ def calculate_y_position(release):
 def create_software_release_overview(releases):
 
     plt.figure(figsize=(16, 8))
-
-    start_date = min(release.release_date for release in releases)
 
     release_lookup = {
     release.release_id: release
