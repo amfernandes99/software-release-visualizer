@@ -63,30 +63,34 @@ def create_timeline_axes(title):
 
     return fig, ax
 
+# Draws one release on the chart: a point in its lane, with its label just above
+def add_release_point(ax, release, label, colour="grey", marker="o", fontsize=7):
+    x_position = release.release_date
+    y_position = calculate_y_position(release)
+
+    ax.scatter(x_position, y_position, s=60, color=colour, marker=marker, zorder=3)
+
+    ax.text(
+        x_position,
+        y_position + 0.08,
+        label,
+        ha="left",
+        rotation=35,
+        fontsize=fontsize
+    )
+
 def create_software_release_overview(releases):
     fig, ax = create_timeline_axes("Software Release Overview")
 
     release_lookup = {release.release_id: release for release in releases}
 
     for release in releases:
-        x_position = release.release_date
-        y_position = calculate_y_position(release)
-
-        ax.scatter(
-            x_position,
-            y_position,
-            s=60,
-            color=STREAM_COLOURS.get(release.stream, "grey"),
-            marker=STATUS_MARKERS.get(release.status, "o"),
-            zorder=3
-        )
-
-        ax.text(
-            x_position,
-            y_position + 0.08,
+        add_release_point(
+            ax,
+            release,
             release.name,
-            ha="left",
-            rotation=35,
+            colour=STREAM_COLOURS.get(release.stream, "grey"),
+            marker=STATUS_MARKERS.get(release.status, "o"),
             fontsize=8
         )
 
@@ -96,8 +100,8 @@ def create_software_release_overview(releases):
 
             if parent:
                 ax.plot(
-                    [parent.release_date, x_position],
-                    [calculate_y_position(parent), y_position],
+                    [parent.release_date, release.release_date],
+                    [calculate_y_position(parent), calculate_y_position(release)],
                     color=STREAM_COLOURS.get(release.stream, "grey"),
                     linewidth=1.5,
                     zorder=1
@@ -119,26 +123,11 @@ def create_defects_changes_testing_graph(releases):
     fig, ax = create_timeline_axes("Defects, Changes and Testing")
 
     for release in releases:
-        x_position = release.release_date
-        y_position = calculate_y_position(release)
-
-        ax.scatter(x_position, y_position, s=60, color="grey", zorder=3)
-
-        release_info = (
+        label = (
             f"{release.name}\n"
-            f"D:{release.defects} "
-            f"C:{release.changes} "
-            f"T:{release.tests}"
+            f"D:{release.defects} C:{release.changes} T:{release.tests}"
         )
-
-        ax.text(
-            x_position,
-            y_position + 0.08,
-            release_info,
-            ha="left",
-            rotation=35,
-            fontsize=7
-        )
+        add_release_point(ax, release, label)
 
     fig.text(
         0.5,
@@ -155,24 +144,8 @@ def create_integration_software_graph(releases):
     fig, ax = create_timeline_axes("Integration Software")
 
     for release in releases:
-        x_position = release.release_date
-        y_position = calculate_y_position(release)
-
-        ax.scatter(x_position, y_position, s=60, color="grey", zorder=3)
-
-        integration_info = (
-            f"{release.name}\n"
-            f"{release.integration_status}"
-        )
-
-        ax.text(
-            x_position,
-            y_position + 0.08,
-            integration_info,
-            ha="left",
-            rotation=35,
-            fontsize=7
-        )
+        label = f"{release.name}\n{release.integration_status}"
+        add_release_point(ax, release, label)
 
     fig.tight_layout()
     return fig
@@ -181,24 +154,8 @@ def create_core_components_graph(releases):
     fig, ax = create_timeline_axes("Core Components")
 
     for release in releases:
-        x_position = release.release_date
-        y_position = calculate_y_position(release)
-
-        ax.scatter(x_position, y_position, s=60, color="grey", zorder=3)
-
-        component_info = (
-            f"{release.name}\n"
-            f"{release.component_version}"
-        )
-
-        ax.text(
-            x_position,
-            y_position + 0.08,
-            component_info,
-            ha="left",
-            rotation=35,
-            fontsize=7
-        )
+        label = f"{release.name}\n{release.component_version}"
+        add_release_point(ax, release, label)
 
     fig.tight_layout()
     return fig
