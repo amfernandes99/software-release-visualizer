@@ -16,6 +16,14 @@ STREAM_COLOURS = {
     "Integration": "tab:green",
 }
 
+INTEGRATION_COLOURS = {
+    "Ready": "tab:green",
+    "Testing": "tab:orange",
+    "In Development": "tab:blue",
+    "Planned": "grey",
+    "Not Applicable": "lightgrey",
+}
+
 STATUS_MARKERS = {
     "Released": "o",
     "Testing": "s",
@@ -53,6 +61,9 @@ def create_timeline_axes(title):
 
     ax.set_yticks([3, 2, 1], ["Main", "Development", "Integration"])
     ax.set_ylim(0.8, 3.5)
+    
+    # Extra space on the right so the last labels aren't cut off
+    ax.margins(x=0.05)
 
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
@@ -79,6 +90,34 @@ def add_release_point(ax, release, label, colour="grey", marker="o", fontsize=7)
         fontsize=fontsize
     )
 
+# Draws an arrow from a parent release to its child.
+# Links within a stream use the stream colour, links between streams are grey and dashed.
+def draw_release_link(ax, parent, child):
+    if parent.stream == child.stream:       
+        colour = STREAM_COLOURS.get(child.stream, "grey")
+        line_style = "solid"
+        connection = "arc3,rad=0"
+    else:
+        colour = "grey"
+        line_style = "dashed"
+        connection = "arc3,rad=0.2"
+
+    ax.annotate(
+        "",
+        xy=(child.release_date, calculate_y_position(child)),
+        xytext=(parent.release_date, calculate_y_position(parent)),
+        arrowprops=dict(
+            arrowstyle="-|>",
+            color=colour,
+            linestyle=line_style,
+            linewidth=1.5,
+            shrinkA=5,
+            shrinkB=5,
+            connectionstyle=connection, 
+        ),
+        zorder=1
+    )
+
 def create_software_release_overview(releases):
     fig, ax = create_timeline_axes("Software Release Overview")
 
@@ -99,13 +138,7 @@ def create_software_release_overview(releases):
             parent = release_lookup.get(release.parent_id)
 
             if parent:
-                ax.plot(
-                    [parent.release_date, release.release_date],
-                    [calculate_y_position(parent), calculate_y_position(release)],
-                    color=STREAM_COLOURS.get(release.stream, "grey"),
-                    linewidth=1.5,
-                    zorder=1
-                )
+                draw_release_link(ax, parent, release)
 
     # Legend for the release status, built from the same markers used on the chart
     legend_items = [
@@ -113,7 +146,7 @@ def create_software_release_overview(releases):
                markersize=8, label=status)
         for status, marker in STATUS_MARKERS.items()
     ]
-    ax.legend(handles=legend_items, loc="upper right")
+    ax.legend(handles=legend_items, loc="upper left", bbox_to_anchor=(1.01, 1))
 
     fig.tight_layout()
     return fig
@@ -145,7 +178,16 @@ def create_integration_software_graph(releases):
 
     for release in releases:
         label = f"{release.name}\n{release.integration_status}"
-        add_release_point(ax, release, label)
+        colour = INTEGRATION_COLOURS.get(release.integration_status, "grey")
+        add_release_point(ax, release, label, colour=colour)
+
+    # Legend for the integration status colours
+    legend_items = [
+        Line2D([0], [0], marker="o", color="w", markerfacecolor=colour,
+               markersize=8, label=status)
+        for status, colour in INTEGRATION_COLOURS.items()
+    ]
+    ax.legend(handles=legend_items, loc="upper left", bbox_to_anchor=(1.01, 1))
 
     fig.tight_layout()
     return fig
