@@ -39,7 +39,7 @@ def parse_arguments():
 def main():
     args = parse_arguments()
 
-    releases = load_releases(args.data_dir / "releases.csv")
+    releases = load_releases(args.data_dir)
     set_release_relationships(releases)
 
     figures = [

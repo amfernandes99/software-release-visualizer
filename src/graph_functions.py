@@ -63,7 +63,7 @@ def create_timeline_axes(title):
     ax.set_ylim(0.8, 3.5)
     
     # Extra space on the right so the last labels aren't cut off
-    ax.margins(x=0.05)
+    ax.margins(x=0.08)
 
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
@@ -91,7 +91,7 @@ def add_release_point(ax, release, label, colour="grey", marker="o", fontsize=7)
     )
 
 # Draws an arrow from a parent release to its child.
-# Links within a stream use the stream colour, links between streams are grey and dashed.
+# Links within a stream are straight, links between streams are grey, dashed, and curved.
 def draw_release_link(ax, parent, child):
     if parent.stream == child.stream:       
         colour = STREAM_COLOURS.get(child.stream, "grey")
@@ -133,7 +133,7 @@ def create_software_release_overview(releases):
             fontsize=8
         )
 
-        # Draws a line from the parent release to this release
+        # Draws an arrow from the parent release to this release
         if release.parent_id:
             parent = release_lookup.get(release.parent_id)
 
