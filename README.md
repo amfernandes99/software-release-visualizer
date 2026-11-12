@@ -8,7 +8,7 @@ A Python tool that combines software release data from several sources and turns
 
 ## Background
 
-This project is a recreation of a release visualisation tool I owned in my role at an automotive manufacturer. The original used the RTCClient Python library to pull release data from IBM (RTC - the release platform used at the company) and produced a PDF report, which I then presented to senior managers and colleagues with a less technical background.
+This project is a recreation of a release visualisation tool I owned in my role at an automotive manufacturer. The original used the RTCClient Python library to pull release data from RTC by IBM (The release platform used at the company) and produced a PDF report, which I then presented to senior managers and colleagues with a less technical background.
 
 I took over the tool in 2024, nearly a year after the graduate who built it had left. By then it no longer ran: the RTC server URLs, project areas and saved query IDs it relied on were out of date. There were access issues to resolve, and it could no longer produce its report. I worked out the correct reports and queries by digging through RTC, meeting the release engineers who used the data, and testing queries until the results matched. I then fixed authentication with the RTC server and refactored the code so it could be maintained.
 
