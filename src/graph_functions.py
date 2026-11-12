@@ -46,7 +46,7 @@ def create_timeline_axes(title):
     ax.margins(x=0.08)
 
     ax.xaxis.set_major_locator(mdates.MonthLocator())
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b\n%Y"))
 
     ax.set_xlabel("Release Date")
     ax.set_ylabel("Release Stream")
