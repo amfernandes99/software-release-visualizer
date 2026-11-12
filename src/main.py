@@ -6,7 +6,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from release_data import load_releases
 from graph_functions import (
-    set_release_relationships,
     create_software_release_overview,
     create_defects_changes_testing_graph,
     create_integration_software_graph,
@@ -40,7 +39,6 @@ def main():
     args = parse_arguments()
 
     releases = load_releases(args.data_dir)
-    set_release_relationships(releases)
 
     figures = [
         create_software_release_overview(releases),

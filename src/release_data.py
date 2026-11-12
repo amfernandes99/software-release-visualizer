@@ -2,6 +2,10 @@ import csv
 from datetime import datetime
 from models import Release
 
+# The only streams and statuses the report knows how to draw
+VALID_STREAMS = ["Main", "Development", "Integration"]
+VALID_STATUSES = ["Released", "Testing", "Planned"]
+
 # Reads a CSV file into a list of rows, each row a dictionary keyed by column name
 def read_csv(file_path):
     with open(file_path, newline="") as csv_file:
@@ -38,6 +42,12 @@ def load_releases(data_dir):
 
         release_ids.add(release_id)
 
+        if row["stream"] not in VALID_STREAMS:
+            raise ValueError(f"Unknown stream '{row['stream']}' for release {release_id}")
+
+        if row["status"] not in VALID_STATUSES:
+            raise ValueError(f"Unknown status '{row['status']}' for release {release_id}")        
+
         release_date = choose_release_date(row)
 
         if release_date is None:
@@ -60,5 +70,12 @@ def load_releases(data_dir):
         )
 
         releases.append(release)
+
+
+    # Every parent and child in relationships.csv must be a known release
+    for row in relationship_rows:
+        for column in ["parent_id", "child_id"]:
+            if row[column] not in release_ids:
+                raise ValueError(f"Release {row[column]} in relationships.csv not found in releases.csv")
 
     return releases

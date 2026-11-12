@@ -30,26 +30,6 @@ STATUS_MARKERS = {
     "Planned": "^",
 }
 
-# Setting up the parent-child relationships between releases
-def set_release_relationships(releases):
-    for release in releases:
-        release.children = []
-
-    for release in releases:
-        if release.parent_id:
-            parent_found = False
-            
-            for possible_parent in releases:
-                if possible_parent.release_id == release.parent_id:
-                    possible_parent.children.append(release)
-                    parent_found = True
-                    break
-
-            if not parent_found:
-                raise ValueError(
-                    f"Parent release {release.parent_id} not found for {release.release_id}"
-                )
-
 # Calculate the y position based on the release stream
 def calculate_y_position(release):
     return STREAM_POSITIONS.get(release.stream, 0)
