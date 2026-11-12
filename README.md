@@ -6,6 +6,8 @@ A Python tool that combines software release data from several sources and turns
 
 ![Software release overview](images/release_overview.png)
 
+I formatted the code with [Black](https://github.com/psf/black).
+
 ## Background
 
 This project is a recreation of a release visualisation tool I owned in my role at an automotive manufacturer. The original used the RTCClient Python library to pull release data from RTC by IBM (The release platform used at the company) and produced a PDF report, which I then presented to senior managers and colleagues with a less technical background.

@@ -30,9 +30,11 @@ STATUS_MARKERS = {
     "Planned": "^",
 }
 
+
 # Calculate the y position based on the release stream
 def calculate_y_position(release):
     return STREAM_POSITIONS.get(release.stream, 0)
+
 
 # Creates an empty timeline page. One lane per stream, with months along the x-axis.
 # Every page of the report starts from this.
@@ -41,7 +43,7 @@ def create_timeline_axes(title):
 
     ax.set_yticks([3, 2, 1], ["Main", "Development", "Integration"])
     ax.set_ylim(0.8, 3.5)
-    
+
     # Extra space on the right so the last labels aren't cut off
     ax.margins(x=0.08)
 
@@ -54,6 +56,7 @@ def create_timeline_axes(title):
 
     return fig, ax
 
+
 # Draws one release on the chart: a point in its lane, with its label just above
 def add_release_point(ax, release, label, colour="grey", marker="o", fontsize=7):
     x_position = release.release_date
@@ -62,18 +65,14 @@ def add_release_point(ax, release, label, colour="grey", marker="o", fontsize=7)
     ax.scatter(x_position, y_position, s=60, color=colour, marker=marker, zorder=3)
 
     ax.text(
-        x_position,
-        y_position + 0.08,
-        label,
-        ha="left",
-        rotation=35,
-        fontsize=fontsize
+        x_position, y_position + 0.08, label, ha="left", rotation=35, fontsize=fontsize
     )
+
 
 # Draws an arrow from a parent release to its child.
 # Links within a stream are straight, links between streams are grey, dashed, and curved.
 def draw_release_link(ax, parent, child):
-    if parent.stream == child.stream:       
+    if parent.stream == child.stream:
         colour = STREAM_COLOURS.get(child.stream, "grey")
         line_style = "solid"
         connection = "arc3,rad=0"
@@ -93,10 +92,11 @@ def draw_release_link(ax, parent, child):
             linewidth=1.5,
             shrinkA=5,
             shrinkB=5,
-            connectionstyle=connection, 
+            connectionstyle=connection,
         ),
-        zorder=1
+        zorder=1,
     )
+
 
 def create_software_release_overview(releases):
     fig, ax = create_timeline_axes("Software Release Overview")
@@ -110,7 +110,7 @@ def create_software_release_overview(releases):
             release.name,
             colour=STREAM_COLOURS.get(release.stream, "grey"),
             marker=STATUS_MARKERS.get(release.status, "o"),
-            fontsize=8
+            fontsize=8,
         )
 
         # Draws an arrow from the parent release to this release
@@ -122,8 +122,15 @@ def create_software_release_overview(releases):
 
     # Legend for the release status, built from the same markers used on the chart
     legend_items = [
-        Line2D([0], [0], marker=marker, color="w", markerfacecolor="grey",
-               markersize=8, label=status)
+        Line2D(
+            [0],
+            [0],
+            marker=marker,
+            color="w",
+            markerfacecolor="grey",
+            markersize=8,
+            label=status,
+        )
         for status, marker in STATUS_MARKERS.items()
     ]
     ax.legend(handles=legend_items, loc="upper left", bbox_to_anchor=(1.01, 1))
@@ -143,15 +150,12 @@ def create_defects_changes_testing_graph(releases):
         add_release_point(ax, release, label)
 
     fig.text(
-        0.5,
-        0.02,
-        "D = Defects    C = Changes    T = Tests",
-        ha="center",
-        fontsize=8
+        0.5, 0.02, "D = Defects    C = Changes    T = Tests", ha="center", fontsize=8
     )
 
     fig.tight_layout(rect=[0, 0.04, 1, 1])
     return fig
+
 
 def create_integration_software_graph(releases):
     fig, ax = create_timeline_axes("Integration Software")
@@ -163,14 +167,22 @@ def create_integration_software_graph(releases):
 
     # Legend for the integration status colours
     legend_items = [
-        Line2D([0], [0], marker="o", color="w", markerfacecolor=colour,
-               markersize=8, label=status)
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            markerfacecolor=colour,
+            markersize=8,
+            label=status,
+        )
         for status, colour in INTEGRATION_COLOURS.items()
     ]
     ax.legend(handles=legend_items, loc="upper left", bbox_to_anchor=(1.01, 1))
 
     fig.tight_layout()
     return fig
+
 
 def create_core_components_graph(releases):
     fig, ax = create_timeline_axes("Core Components")
